@@ -44,4 +44,54 @@ pipelines:
                     arguments:
                       - "-c"
                       - "grep 'artifact,0,id' build.log | cut -d, -f6 | cut -d: -f2 > ami_id.txt"
+      - inspec:
+          clean_workspace: true
+          envirnment_variables:
+            TERRAFORM_DIR: "02-hardening/"
+            INSPEC_TARGET: "../cis-inspec/"
+          jobs:
+            test:
+              artifacts:
+               - build:
+                   source: pipeline/ami_id_sec_verified.txt
+              tasks:
+                - fetch:
+                   pipeline: pipeline-ami-hardening
+                   stage: build
+                   job: build
+                   is_file: True
+                   source: ami_id.txt
+                   destination: pipeline/
+                - exec:
+                    command: sh 
+                    working_directory: pipeline
+                    arguments:
+                      - "-c"
+                      - "ssh-keygen -f ./key -t rsa -b 4096 -N ''"
+                - exec:
+                    command: sh
+                    working_directory: pipeline
+                    arguments:
+                      - "-c"
+                      - "terraform apply -var \"ami=$(cat ami_id.txt)\" -var=\"key_value=$(cat key.pub)\" $TERRAFORM_DIR"
+                - exec:
+                    command: sh
+                    working_directory: pipeline
+                    arguments:
+                      - "-c"
+                      - "cat ami_id.txt > ami_id_sec_verified.txt"
+                - exec:
+                    run_if: any
+                    working_directory: pipeline
+                    command: sh
+                    arguments:
+                      - "-c"
+                      - "terraform destroy -force -var \"ami=$(cat ami_id.txt)\" -var=\"key_value=$(cat key.pub)\" $TERRAFORM_DIR"
+                - exec:
+                    run_if: any
+                    working_directory: pipeline
+                    command: sh
+                    arguments:
+                      - "-c"
+                      - "rm -rf key*"
     
