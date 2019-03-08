@@ -1,0 +1,24 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_region": "{{env `AWS_REGION`}}",
+    "source_ami": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "region": "{{ user `aws_region` }}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "vpc_id": "{{user `aws_vpc_id`}}",
+    "source_ami": "{{user `source_ami`}}",
+    "instance_type": "t2.micro",
+    "ssh_username": "ec2-user",
+    "ami_name": "rhel7.4-hardened-{{timestamp}}",
+    "tags": {
+      "program": "channels-enablement",
+      "os": "rhel-7.4",
+      "base": true,
+      "hardened": true
+    }
+  }]
+}
