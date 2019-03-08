@@ -1,0 +1,47 @@
+---
+pipelines:
+  pipeline-ami-hardening:
+    group: hardened-ami-no-partitions
+    materials:
+      git:  # this is the name of material
+        # says about type of material and url at once
+        git: https://github.com/garrettogorman/ami-creation.git
+        branch: master
+        destination: pipeline
+      upstream-pipeline-iso-conversion: # this name does not matter, but there should be no 2 materials with the same name
+        # type is optional here, material type is implied based on presence of pipeline and stage fields
+        pipeline: pipeline-iso-conversion
+        stage: build
+
+    stages:
+      - build: # name of stage
+          clean_workspace: true
+          environment_variables:
+            PACKER_DIR: 02-hardening
+          jobs:
+            build: # name of the job
+              artifacts:
+               - build:
+                   source: pipeline/ami_id.txt
+              tasks:
+                - exec:
+                    command: sh
+                    working_directory: pipeline
+                    arguments:
+                      - "-c"
+                      - printenv
+                - exec:
+                    command: sh
+                    working_directory: pipeline
+                    arguments:
+                      - "-o"
+                      - pipefail
+                      - "-c"
+                      - "USER=go packer build -var=\"source_ami=ami-0e12cbde3e77cbb98\" -machine-readable $PACKER_DIR/packer.json | tee build.log"
+                - exec:
+                    command: sh
+                    working_directory: pipeline
+                    arguments:
+                      - "-c"
+                      - "grep 'artifact,0,id' build.log | cut -d, -f6 | cut -d: -f2 > ami_id.txt"
+    
