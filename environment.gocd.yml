@@ -1,0 +1,5 @@
+environments:
+  garrett-hardened-ami-environment:
+    environment_variables:
+      AWS_REGION: eu-west-1
+      - pipeline-ami-hardening
