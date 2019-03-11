@@ -8,11 +8,6 @@ pipelines:
         git: https://github.com/garrettogorman/ami-creation.git
         branch: master
         destination: pipeline
-      upstream-pipeline-iso-conversion: # this name does not matter, but there should be no 2 materials with the same name
-        # type is optional here, material type is implied based on presence of pipeline and stage fields
-        pipeline: pipeline-iso-conversion
-        stage: build
-
     stages:
       - build: # name of stage
           clean_workspace: true
